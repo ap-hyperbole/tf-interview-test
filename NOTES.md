@@ -35,7 +35,7 @@ terraform apply -var-file=global.tfvars
 * Wait for the instance to be fully built and provisioned
 * Test Java App access from both regions
 ```bash
-for domain in ireland_domain us_domain; do echo "### $domain ###" && curl $(terraform output $domain/java-app/); done
+for domain in ireland_domain us_domain; do echo "### $domain ###" && curl $(terraform output $domain)/java-app/; done
 ```
 * You should see default Nginx page printed once for each region.
 
@@ -47,4 +47,4 @@ for domain in ireland_domain us_domain; do echo "### $domain ###" && curl $(terr
 * Disable public IP allocation to all instances (except bastion)
 * Ensure ALB can reach EC2s in private subnets
 * Improve deployment process
-* Set healcheck path to /java-app 
+* Set healcheck path to /java-app
