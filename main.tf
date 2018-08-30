@@ -30,6 +30,20 @@ module "ireland_vpc" {
   availability_zones = "${var.availability_zones}"
 }
 
+module "ireland_bastion" {
+  providers {
+    aws = "aws.ireland"
+  }
+
+  source             = "./modules/bastion"
+  public_key         = "${var.public_key}"
+  az_subnets         = "${module.ireland_vpc.public_subnet_ids}"
+  public_ip_required = "true"
+  instance_type      = "t2.small"
+  ami_id             = "${var.ami_id["eu-west-1"]}"
+  vpc_id             = "${module.ireland_vpc.vpc_id}"
+}
+
 module "ireland_web_instance" {
   providers {
     aws = "aws.ireland"
@@ -46,38 +60,13 @@ module "ireland_web_instance" {
   ami_id             = "${var.ami_id["eu-west-1"]}"
   instance_type      = "t2.small"
   public_ip_required = "true"
+  bastion_ip         = "${module.ireland_bastion.bastion_private_ip}/32"
 
   user_data = <<EOF
   #!/bin/sh
   yum install -y nginx
   service nginx start
 EOF
-}
-
-resource "aws_security_group" "ireland_web_instance_security_group" {
-  vpc_id = "${module.ireland_vpc.vpc_id}"
-
-  ingress = [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-  ]
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 /**
@@ -98,6 +87,20 @@ module "us_vpc" {
   availability_zones = "${var.availability_zones}"
 }
 
+module "us_bastion" {
+  providers {
+    aws = "aws.ireland"
+  }
+
+  source             = "./modules/bastion"
+  public_key         = "${var.public_key}"
+  az_subnets         = "${module.us_vpc.public_subnet_ids}"
+  public_ip_required = "true"
+  instance_type      = "t2.small"
+  ami_id             = "${var.ami_id["us-east-1"]}"
+  vpc_id             = "${module.us_vpc.vpc_id}"
+}
+
 module "us_web_instance" {
   providers {
     aws = "aws.us"
@@ -114,6 +117,7 @@ module "us_web_instance" {
   ami_id             = "${var.ami_id["us-east-1"]}"
   instance_type      = "t2.small"
   public_ip_required = "true"
+  bastion_ip         = "${module.us_bastion.bastion_private_ip}/32"
 
   user_data = <<EOF
   #!/bin/sh

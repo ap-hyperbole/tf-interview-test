@@ -5,7 +5,7 @@ resource "aws_launch_configuration" "this_launch_config" {
   image_id                    = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
   key_name                    = "${aws_key_pair.this_key.key_name}"
-  security_groups             = ["${aws_security_group.linking_group.id}"]
+  security_groups             = ["${aws_security_group.linking_group.id}", "${aws_security_group.this_instance_security_group.id}"]
   associate_public_ip_address = "${var.public_ip_required}"
   user_data                   = "${var.user_data}"
 
@@ -65,7 +65,7 @@ resource "aws_security_group_rule" "allow_out" {
 resource "aws_lb" "this_alb" {
   internal           = false
   load_balancer_type = "application"
-  security_groups    = ["${aws_security_group.this_instance_security_group.id}", "${aws_security_group.linking_group.id}"]
+  security_groups    = ["${aws_security_group.linking_group.id}", "${aws_security_group.this_alb_security_group.id}"]
   subnets            = ["${var.az_subnets}"]
 }
 
@@ -97,14 +97,30 @@ resource "aws_security_group" "this_instance_security_group" {
 
   ingress = [
     {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
       from_port   = 22
       to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["${var.bastion_ip}"]
+    },
+  ]
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+/** ALB SG **/
+
+resource "aws_security_group" "this_alb_security_group" {
+  vpc_id = "${var.vpc_id}"
+
+  ingress = [
+    {
+      from_port   = 80
+      to_port     = 80
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     },

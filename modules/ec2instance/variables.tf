@@ -50,3 +50,8 @@ variable "az_subnets" {
   description = "List of subnets to place EC2s in this ASG"
   type        = "list"
 }
+
+variable "bastion_ip" {
+  description = "IP address of the bastion server for SSH access"
+  type        = "string"
+}
