@@ -9,15 +9,20 @@ ALB is used to distribute the traffic and HTTP health checks are in use.
 ```
 export AWS_ACCESS_KEY_ID="anaccesskey"
 export AWS_SECRET_ACCESS_KEY="asecretkey"
+export AWS_DEFAULT_REGION="eu-west-1"
 ```
-* Set variable values in `dublin.tfvars` file if required.
+* Set variable values in `global.tfvars` file if required.
+* Initialise all the modules
+```bash
+terraform init
+```
 * Run
 ```bash
-terraform apply -var-file=dublin.tfvars
+terraform apply -var-file=global.tfvars
 ```
 * Wait for the instance to be fully built and provisioned
-* Test Nginx access
+* Test Nginx access from both regions
 ```bash
-terraform output web_domain | xargs curl
+for domain in ireland_domain us_domain; do echo "### $domain ###" && curl $(terraform output $domain); done
 ```
-* You should see default Nginx page.
+* You should see default Nginx page printed once for each region.

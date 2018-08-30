@@ -1,8 +1,6 @@
-variable "region" {}
-
-variable "vpc_cidr" {}
-
-variable "subnet_cidr_public" {}
+variable "vpc_cidr" {
+  type = "map"
+}
 
 # for the purpose of this exercise use the default key pair on your local system
 variable "public_key" {
@@ -10,7 +8,7 @@ variable "public_key" {
 }
 
 variable "ami_id" {
-  default = "ami-cdbfa4ab"
+  type = "map"
 }
 
 variable "availability_zones" {
@@ -20,6 +18,15 @@ variable "availability_zones" {
       "eu-west-1a",
       "eu-west-1b",
       "eu-west-1c",
+    ]
+
+    us-east-1 = [
+      "us-east-1a",
+      "us-east-1b",
+      "us-east-1c",
+      "us-east-1d",
+      "us-east-1e",
+      "us-east-1f",
     ]
   }
 }

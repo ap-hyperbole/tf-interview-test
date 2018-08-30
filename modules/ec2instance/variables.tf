@@ -13,18 +13,13 @@ variable "instance_type" {
   type        = "string"
 }
 
-variable "security_groups" {
-  description = "List of secuirty groups to associate with this instance"
-  type        = "list"
-}
-
 variable "vpc_id" {
   description = "VPC ID in which to this instances exists."
   type        = "string"
 }
 
-variable "key_name" {
-  description = "SSH key name to assign to this instance."
+variable "public_key" {
+  description = "Full path to your SSH key"
   type        = "string"
 }
 

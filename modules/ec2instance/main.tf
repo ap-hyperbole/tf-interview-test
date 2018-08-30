@@ -4,7 +4,7 @@ resource "aws_launch_configuration" "this_launch_config" {
   name_prefix                 = "${var.name}"
   image_id                    = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${aws_key_pair.this_key.key_name}"
   security_groups             = ["${aws_security_group.linking_group.id}"]
   associate_public_ip_address = "${var.public_ip_required}"
   user_data                   = "${var.user_data}"
@@ -12,6 +12,12 @@ resource "aws_launch_configuration" "this_launch_config" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+/** KEY **/
+
+resource "aws_key_pair" "this_key" {
+  public_key = "${file(pathexpand(var.public_key))}"
 }
 
 /** ASG **/
@@ -59,7 +65,7 @@ resource "aws_security_group_rule" "allow_out" {
 resource "aws_lb" "this_alb" {
   internal           = false
   load_balancer_type = "application"
-  security_groups    = ["${var.security_groups}", "${aws_security_group.linking_group.id}"]
+  security_groups    = ["${aws_security_group.this_instance_security_group.id}", "${aws_security_group.linking_group.id}"]
   subnets            = ["${var.az_subnets}"]
 }
 
@@ -82,5 +88,32 @@ resource "aws_lb_listener" "this_listener" {
   default_action {
     type             = "forward"
     target_group_arn = "${aws_lb_target_group.this_target_group.arn}"
+  }
+}
+
+/** Instance SG **/
+resource "aws_security_group" "this_instance_security_group" {
+  vpc_id = "${var.vpc_id}"
+
+  ingress = [
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+  ]
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
