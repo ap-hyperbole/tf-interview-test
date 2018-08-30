@@ -64,8 +64,12 @@ module "ireland_web_instance" {
 
   user_data = <<EOF
   #!/bin/sh
-  yum install -y nginx
+  yum install -y nginx java-1.8.0-openjdk.x86_64
   service nginx start
+  sed -i '/listen       80 default_server;/a location /java-app { proxy_pass http://127.0.0.1:8080/; }'  /etc/nginx/nginx.conf
+  mkdir -p /opt/java-app && wget -O /opt/java-app/demo-0.0.1-SNAPSHOT.jar https://github.com/sebwells/example-java-spring-boot-app/raw/master/demo-0.0.1-SNAPSHOT.jar
+  java8 -jar /opt/java-app/demo-0.0.1-SNAPSHOT.jar &
+  service nginx restart
 EOF
 }
 
@@ -89,7 +93,7 @@ module "us_vpc" {
 
 module "us_bastion" {
   providers {
-    aws = "aws.ireland"
+    aws = "aws.us"
   }
 
   source             = "./modules/bastion"
@@ -121,7 +125,11 @@ module "us_web_instance" {
 
   user_data = <<EOF
   #!/bin/sh
-  yum install -y nginx
+  yum install -y nginx java-1.8.0-openjdk.x86_64
   service nginx start
+  sed -i '/listen       80 default_server;/a location /java-app { proxy_pass http://127.0.0.1:8080/; }'  /etc/nginx/nginx.conf
+  mkdir -p /opt/java-app && wget -O /opt/java-app/demo-0.0.1-SNAPSHOT.jar https://github.com/sebwells/example-java-spring-boot-app/raw/master/demo-0.0.1-SNAPSHOT.jar
+  java8 -jar /opt/java-app/demo-0.0.1-SNAPSHOT.jar &
+  service nginx restart
 EOF
 }
