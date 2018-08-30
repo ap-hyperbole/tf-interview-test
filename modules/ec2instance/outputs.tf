@@ -1,10 +1,3 @@
-output "public_dns" {
-  value = "${aws_instance.this_instance.public_dns}"
-}
-output "public_ip" {
-  value = "${aws_instance.this_instance.public_ip}"
-}
-
-output "private_ip" {
-  value = "${aws_instance.this_instance.private_ip}"
+output "load_balancer_dns_name" {
+  value = "${aws_lb.this_alb.dns_name}"
 }

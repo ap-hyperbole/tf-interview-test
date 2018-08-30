@@ -10,23 +10,28 @@ resource "aws_key_pair" "web" {
   public_key = "${file(pathexpand(var.public_key))}"
 }
 
-module "ireland_vpc" {
-  source             = "./modules/vpc"
+module "custom_vpc" {
+  source = "./modules/vpc"
 
   vpc_cidr           = "${var.vpc_cidr}"
-  subnet_cidr_public = "${var.subnet_cidr_public}"
   region             = "${var.region}"
+  availability_zones = "${var.availability_zones}"
 }
 
 module "web_instance" {
   source = "./modules/ec2instance"
 
-  ami_id = "${var.ami_id}"
-  instance_type = "t2.small"
-  security_groups = [ "${aws_security_group.web_instance_security_group.id}" ]
-  subnet_id = "${module.ireland_vpc.public_subnet_id}"
-  key_name = "${aws_key_pair.web.key_name}"
+  name               = "web-instance"
+  vpc_id             = "${module.custom_vpc.vpc_id}"
+  min_size           = 3
+  max_size           = 5
+  az_subnets         = "${module.custom_vpc.public_subnet_ids}"
+  ami_id             = "${var.ami_id}"
+  instance_type      = "t2.small"
+  security_groups    = ["${aws_security_group.web_instance_security_group.id}"]
+  key_name           = "${aws_key_pair.web.key_name}"
   public_ip_required = "true"
+
   user_data = <<EOF
   #!/bin/sh
   yum install -y nginx
@@ -35,7 +40,7 @@ module "web_instance" {
 }
 
 resource "aws_security_group" "web_instance_security_group" {
-  vpc_id      = "${module.ireland_vpc.vpc_id}"
+  vpc_id = "${module.custom_vpc.vpc_id}"
 
   ingress = [
     {
@@ -49,7 +54,7 @@ resource "aws_security_group" "web_instance_security_group" {
       to_port     = 22
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
-    }
+    },
   ]
 
   egress {

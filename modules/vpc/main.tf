@@ -4,9 +4,10 @@ resource "aws_vpc" "this_vpc" {
 }
 
 resource "aws_subnet" "this_public_subnet" {
+  count             = "${length(var.availability_zones["${var.region}"])}"
   vpc_id            = "${aws_vpc.this_vpc.id}"
-  cidr_block        = "${var.subnet_cidr_public}"
-  availability_zone = "${var.region}a"
+  cidr_block        = "${cidrsubnet(var.vpc_cidr, 3, count.index)}"
+  availability_zone = "${element(var.availability_zones["${var.region}"], count.index)}"
 }
 
 resource "aws_route_table" "this_public_subnet_route_table" {
@@ -18,12 +19,13 @@ resource "aws_internet_gateway" "this_igw" {
 }
 
 resource "aws_route" "this_public_subnet_route" {
-  destination_cidr_block  = "0.0.0.0/0"
-  gateway_id              = "${aws_internet_gateway.this_igw.id}"
-  route_table_id          = "${aws_route_table.this_public_subnet_route_table.id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = "${aws_internet_gateway.this_igw.id}"
+  route_table_id         = "${aws_route_table.this_public_subnet_route_table.id}"
 }
 
 resource "aws_route_table_association" "this_public_subnet_route_table_association" {
-  subnet_id      = "${aws_subnet.this_public_subnet.id}"
+  count          = "${length(var.availability_zones["${var.region}"])}"
+  subnet_id      = "${element(aws_subnet.this_public_subnet.*.id, count.index)}"
   route_table_id = "${aws_route_table.this_public_subnet_route_table.id}"
 }

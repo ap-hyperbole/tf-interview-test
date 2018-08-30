@@ -1,7 +1,8 @@
 # Overview
 
-This terraform project manages single EC2 instance deployed into
-custom single availability zone VPC.
+This terraform project manages resilient EC2 instance deployed into
+more that one availability zone in custom VPC.
+ALB is used to distribute the traffic and HTTP health checks are in use.
 # How to Deploy
 
 * Set AWS API Key and Secret Key
@@ -19,4 +20,4 @@ terraform apply -var-file=dublin.tfvars
 ```bash
 terraform output web_domain | xargs curl
 ```
-* You should see default Nginx page. 
+* You should see default Nginx page.
